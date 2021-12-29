@@ -12,10 +12,8 @@ import {
   RGBFormat,
   Vector2,
 } from 'three'
-import { extend } from '@react-three/fiber'
-import { shaderMaterial } from '@react-three/drei'
 
-function Box(props) {
+function TestBox(props) {
   // This reference will give us direct access to the mesh
   const mesh = useRef<Mesh>()
   // Set up state for the hovered and active state
@@ -78,40 +76,21 @@ const Shader = ({ imageFileLocation }: Props) => {
     for (let i = 0; i < numPoints; i++) {
       if (originalColors[i * 4 + 0] > threshold) numVisible++
     }
-
-    // console.log('numVisible', numVisible, this.numPoints);
   }
 
-  // const uniforms = {
-  //   uTime: { value: 0 },
-  //   uRandom: { value: 1.0 },
-  //   uDepth: { value: 2.0 },
-  //   uSize: { value: 0.0 },
-  //   uTextureSize: { value: new Vector2(width, height) },
-  //   uTexture: { value: texture },
-  //   uTouch: { value: null },
-  // }
-
-  const CustomMaterial = shaderMaterial(
-    {
-      uTime: 0,
-      uRandom: 1.0,
-      uDepth: 2.0,
-      uSize: 0.0,
-      uTextureSize: new Vector2(width, height),
-      uTexture: texture,
-      uTouch: null,
-    },
-    // vertex shader
-    vertex,
-    fragment
-  )
-
-  extend({ CustomMaterial })
+  const uniforms = {
+    uTime: { value: 0 },
+    uRandom: { value: 1.0 },
+    uDepth: { value: 2.0 },
+    uSize: { value: 0.0 },
+    uTextureSize: { value: new Vector2(width, height) },
+    uTexture: { value: texture },
+    uTouch: { value: null },
+  }
 
   const geomRef = useRef<InstancedBufferGeometry>()
   useEffect(() => {
-    const geometry = geomRef.current!
+    const geometry = geomRef.current
 
     const positions = new BufferAttribute(new Float32Array(4 * 3), 3)
     positions.setXYZ(0, -0.5, 0.5, 0.0)
@@ -158,26 +137,23 @@ const Shader = ({ imageFileLocation }: Props) => {
         new InstancedBufferAttribute(angles, 1, false)
       )
     }
-
-    console.log({ positions, uvs, indices, offsets, angles })
   })
 
   return (
     <>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
-      <Box position={[-1.2, 0, 0]} />
-      <Box position={[1.2, 0, 0]} />
+      <TestBox position={[-1.2, 0, 0]} />
+      <TestBox position={[1.2, 0, 0]} />
       <mesh>
         <instancedBufferGeometry ref={geomRef} />
-        {/* <rawShaderMaterial
+        <rawShaderMaterial
           uniforms={uniforms}
           vertexShader={vertex}
           fragmentShader={fragment}
           depthTest={false}
           transparent={true}
-        /> */}
-        <customMaterial />
+        />
       </mesh>
     </>
   )
