@@ -23,7 +23,7 @@ const DOM = () => {
 const R3F = () => {
   return (
     <>
-      <Shader />
+      <Shader imageFileLocation='/img/sample-04.png' />
     </>
   )
 }

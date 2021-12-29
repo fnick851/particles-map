@@ -24,7 +24,9 @@ const LCanvas = ({ children }) => {
       style={{
         position: 'absolute',
         top: 0,
+        backgroundColor: '#222',
       }}
+      gl={{ alpha: true }}
       onCreated={(state) => state.events.connect(dom.current)}
     >
       <LControl />
