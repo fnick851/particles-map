@@ -102,7 +102,7 @@ const Shader = ({ imageFileLocation }: Props) => {
       <TestBox position={[0, 0, 0]} />
       <mesh>
         <instancedBufferGeometry attach='geometry' ref={geomRef}>
-          <bufferAttribute
+          <instancedBufferAttribute
             array={bufferAttrIndices}
             attach='index'
             count={bufferAttrIndices.length}
