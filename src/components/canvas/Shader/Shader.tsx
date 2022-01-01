@@ -1,16 +1,17 @@
 import { useLoader } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { TextureLoader } from 'three/src/loaders/TextureLoader'
 import vertex from './glsl/shader.vert'
 import fragment from './glsl/shader.frag'
 import {
   BufferAttribute,
+  InstancedBufferAttribute,
   InstancedBufferGeometry,
   LinearFilter,
+  RawShaderMaterial,
   RGBFormat,
   Vector2,
 } from 'three'
-import TestBox from '../TeatBox'
 
 type Props = {
   imageFileLocation: string
@@ -55,17 +56,18 @@ const Shader = ({ imageFileLocation }: Props) => {
 
   const uniforms = {
     uTime: { value: 0 },
-    uRandom: { value: 1.0 },
-    uDepth: { value: 2.0 },
-    uSize: { value: 0.0 },
+    uRandom: { value: 2.0 },
+    uDepth: { value: 4.0 },
+    uSize: { value: 1.5 },
     uTextureSize: { value: new Vector2(width, height) },
     uTexture: { value: texture },
     uTouch: { value: null },
   }
 
-  const geomRef = useRef<InstancedBufferGeometry>()
-  const bufferAttrIndices = new Uint32Array([0, 2, 1, 2, 3, 1])
-  const indices = new Uint32Array(numVisible)
+  const bufferAttrIndices = new Uint16Array([0, 2, 1, 2, 3, 1])
+  const indices = new Uint16Array(numVisible)
+  const offsets = new Float32Array(numVisible * 3)
+  const angles = new Float32Array(numVisible)
   const positions = new BufferAttribute(new Float32Array(4 * 3), 3)
   positions.setXYZ(0, -0.5, 0.5, 0.0)
   positions.setXYZ(1, 0.5, 0.5, 0.0)
@@ -76,8 +78,6 @@ const Shader = ({ imageFileLocation }: Props) => {
   uvs.setXYZ(1, 1.0, 0.0, 0.0)
   uvs.setXYZ(2, 0.0, 1.0, 0.0)
   uvs.setXYZ(3, 1.0, 1.0, 0.0)
-  const offsets = new Float32Array(numVisible * 3)
-  const angles = new Float32Array(numVisible)
   for (let i = 0, j = 0; i < numPoints; i++) {
     if (discard && originalColors[i * 4 + 0] <= threshold) continue
     offsets[j * 3 + 0] = i % width
@@ -87,55 +87,36 @@ const Shader = ({ imageFileLocation }: Props) => {
     j++
   }
 
-  useEffect(() => {
-    const geometry = geomRef.current
-    if (geometry) {
-      geometry.setAttribute('position', positions)
-      geometry.setAttribute('uv', uvs)
-    }
+  const geometry = new InstancedBufferGeometry()
+  geometry.setAttribute('position', positions)
+  geometry.setAttribute('uv', uvs)
+  geometry.setIndex(new InstancedBufferAttribute(bufferAttrIndices, 1))
+  geometry.setAttribute(
+    'pindex',
+    new InstancedBufferAttribute(indices, 1, false)
+  )
+  geometry.setAttribute(
+    'offset',
+    new InstancedBufferAttribute(offsets, 3, false)
+  )
+  geometry.setAttribute('angle', new InstancedBufferAttribute(angles, 1, false))
+
+  const material = new RawShaderMaterial({
+    uniforms,
+    vertexShader: vertex,
+    fragmentShader: fragment,
+    depthTest: false,
+    transparent: true,
+    // blending: THREE.AdditiveBlending
   })
 
   return (
     <>
-      <ambientLight />
-      <pointLight position={[10, 10, 10]} />
-      <TestBox position={[0, 0, 0]} />
-      <mesh>
-        <instancedBufferGeometry attach='geometry' ref={geomRef}>
-          <instancedBufferAttribute
-            array={bufferAttrIndices}
-            attach='index'
-            count={bufferAttrIndices.length}
-            itemSize={1}
-          />
-          <instancedBufferAttribute
-            attachObject={['attributes', 'pindex']}
-            array={indices}
-            itemSize={1}
-            normalized={false}
-          />
-          <instancedBufferAttribute
-            attachObject={['attributes', 'offset']}
-            array={offsets}
-            itemSize={3}
-            normalized={false}
-          />
-          <instancedBufferAttribute
-            attachObject={['attributes', 'angle']}
-            array={angles}
-            itemSize={1}
-            normalized={false}
-          />
-        </instancedBufferGeometry>
-        <shaderMaterial
-          attach='material'
-          uniforms={uniforms}
-          vertexShader={vertex}
-          fragmentShader={fragment}
-          depthTest={false}
-          transparent={true}
-        />
-      </mesh>
+      {/* @ts-ignore */}
+      <object3D>
+        <mesh material={material} geometry={geometry} />
+        {/* @ts-ignore */}
+      </object3D>
     </>
   )
 }

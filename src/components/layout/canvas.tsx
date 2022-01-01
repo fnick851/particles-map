@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Preload } from '@react-three/drei'
+import { OrbitControls, PerspectiveCamera, Preload } from '@react-three/drei'
 import useStore from '@/helpers/store'
 import { useEffect, useRef } from 'react'
 
@@ -28,6 +28,13 @@ const LCanvas = ({ children }) => {
       }}
       gl={{ alpha: true }}
       onCreated={(state) => state.events.connect(dom.current)}
+      camera={{
+        fov: 50,
+        aspect: window.innerWidth / window.innerHeight,
+        near: 1,
+        far: 10000,
+        position: [0, 0, 300],
+      }}
     >
       <LControl />
       <Preload all />

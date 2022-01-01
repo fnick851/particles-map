@@ -23,7 +23,7 @@ const DOM = () => {
 const R3F = () => {
   return (
     <>
-      <Shader imageFileLocation='/img/sample-04.png' />
+      <Shader imageFileLocation='/img/particles/U.S._president_Donald_Trump_2020.jpeg' />
     </>
   )
 }
