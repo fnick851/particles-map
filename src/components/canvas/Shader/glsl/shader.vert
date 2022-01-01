@@ -3,13 +3,13 @@
 precision highp float;
 
 attribute float pindex;
-attribute vec3 position;
+// attribute vec3 position;
 attribute vec3 offset;
-attribute vec2 uv;
+// attribute vec2 uv;
 attribute float angle;
 
-uniform mat4 modelViewMatrix;
-uniform mat4 projectionMatrix;
+// uniform mat4 modelViewMatrix;
+// uniform mat4 projectionMatrix;
 
 uniform float uTime;
 uniform float uRandom;

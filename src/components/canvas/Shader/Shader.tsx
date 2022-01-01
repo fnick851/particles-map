@@ -5,7 +5,6 @@ import vertex from './glsl/shader.vert'
 import fragment from './glsl/shader.frag'
 import {
   BufferAttribute,
-  InstancedBufferAttribute,
   InstancedBufferGeometry,
   LinearFilter,
   RGBFormat,
@@ -65,53 +64,34 @@ const Shader = ({ imageFileLocation }: Props) => {
   }
 
   const geomRef = useRef<InstancedBufferGeometry>()
+  const bufferAttrIndices = new Uint32Array([0, 2, 1, 2, 3, 1])
+  const indices = new Uint32Array(numVisible)
+  const positions = new BufferAttribute(new Float32Array(4 * 3), 3)
+  positions.setXYZ(0, -0.5, 0.5, 0.0)
+  positions.setXYZ(1, 0.5, 0.5, 0.0)
+  positions.setXYZ(2, -0.5, -0.5, 0.0)
+  positions.setXYZ(3, 0.5, -0.5, 0.0)
+  const uvs = new BufferAttribute(new Float32Array(4 * 2), 2)
+  uvs.setXYZ(0, 0.0, 0.0, 0.0)
+  uvs.setXYZ(1, 1.0, 0.0, 0.0)
+  uvs.setXYZ(2, 0.0, 1.0, 0.0)
+  uvs.setXYZ(3, 1.0, 1.0, 0.0)
+  const offsets = new Float32Array(numVisible * 3)
+  const angles = new Float32Array(numVisible)
+  for (let i = 0, j = 0; i < numPoints; i++) {
+    if (discard && originalColors[i * 4 + 0] <= threshold) continue
+    offsets[j * 3 + 0] = i % width
+    offsets[j * 3 + 1] = Math.floor(i / width)
+    indices[j] = i
+    angles[j] = Math.random() * Math.PI
+    j++
+  }
+
   useEffect(() => {
     const geometry = geomRef.current
-
-    const positions = new BufferAttribute(new Float32Array(4 * 3), 3)
-    positions.setXYZ(0, -0.5, 0.5, 0.0)
-    positions.setXYZ(1, 0.5, 0.5, 0.0)
-    positions.setXYZ(2, -0.5, -0.5, 0.0)
-    positions.setXYZ(3, 0.5, -0.5, 0.0)
-    const uvs = new BufferAttribute(new Float32Array(4 * 2), 2)
-    uvs.setXYZ(0, 0.0, 0.0, 0.0)
-    uvs.setXYZ(1, 1.0, 0.0, 0.0)
-    uvs.setXYZ(2, 0.0, 1.0, 0.0)
-    uvs.setXYZ(3, 1.0, 1.0, 0.0)
-    const indices = new Uint16Array(numVisible)
-    const offsets = new Float32Array(numVisible * 3)
-    const angles = new Float32Array(numVisible)
-    for (let i = 0, j = 0; i < numPoints; i++) {
-      if (discard && originalColors[i * 4 + 0] <= threshold) continue
-
-      offsets[j * 3 + 0] = i % width
-      offsets[j * 3 + 1] = Math.floor(i / width)
-
-      indices[j] = i
-
-      angles[j] = Math.random() * Math.PI
-
-      j++
-    }
-
     if (geometry) {
       geometry.setAttribute('position', positions)
       geometry.setAttribute('uv', uvs)
-      geometry.setIndex(
-        new BufferAttribute(new Uint16Array([0, 2, 1, 2, 3, 1]), 1)
-      )
-      geometry.setAttribute(
-        'pindex',
-        new InstancedBufferAttribute(indices, 1, false)
-      )
-      geometry.setAttribute(
-        'offset',
-        new InstancedBufferAttribute(offsets, 3, false)
-      )
-      geometry.setAttribute(
-        'angle',
-        new InstancedBufferAttribute(angles, 1, false)
-      )
     }
   })
 
@@ -121,8 +101,34 @@ const Shader = ({ imageFileLocation }: Props) => {
       <pointLight position={[10, 10, 10]} />
       <TestBox position={[0, 0, 0]} />
       <mesh>
-        <instancedBufferGeometry ref={geomRef} />
-        <rawShaderMaterial
+        <instancedBufferGeometry attach='geometry' ref={geomRef}>
+          <bufferAttribute
+            array={bufferAttrIndices}
+            attach='index'
+            count={bufferAttrIndices.length}
+            itemSize={1}
+          />
+          <instancedBufferAttribute
+            attachObject={['attributes', 'pindex']}
+            array={indices}
+            itemSize={1}
+            normalized={false}
+          />
+          <instancedBufferAttribute
+            attachObject={['attributes', 'offset']}
+            array={offsets}
+            itemSize={3}
+            normalized={false}
+          />
+          <instancedBufferAttribute
+            attachObject={['attributes', 'angle']}
+            array={angles}
+            itemSize={1}
+            normalized={false}
+          />
+        </instancedBufferGeometry>
+        <shaderMaterial
+          attach='material'
           uniforms={uniforms}
           vertexShader={vertex}
           fragmentShader={fragment}
