@@ -22,7 +22,7 @@ uniform sampler2D uTouch;
 varying vec2 vPUv;
 varying vec2 vUv;
 
-#pragma glslify: snoise2 = require(glsl-noise/simplex/2d)
+#pragma glslify: noiseFn = require(glsl-noise/simplex/2d.glsl)
 
 float random(float n) {
 	return fract(sin(n) * 43758.5453123);
@@ -43,7 +43,7 @@ void main() {
 	vec3 displaced = offset;
 	// randomise
 	displaced.xy += vec2(random(pindex) - 0.5, random(offset.x + pindex) - 0.5) * uRandom;
-	float rndz = (random(pindex) + snoise2(vec2(pindex * 0.1, uTime * 0.1)));
+	float rndz = (random(pindex) + noiseFn(vec2(pindex * 0.1, uTime * 0.1)));
 	displaced.z += rndz * (random(pindex) * 2.0 * uDepth);
 	// center
 	displaced.xy -= uTextureSize * 0.5;
@@ -55,7 +55,7 @@ void main() {
 	displaced.y += sin(angle) * t * 20.0 * rndz;
 
 	// particle size
-	float psize = (snoise2(vec2(uTime, pindex) * 0.5) + 2.0);
+	float psize = (noiseFn(vec2(uTime, pindex) * 0.5) + 2.0);
 	psize *= max(grey, 0.2);
 	psize *= uSize;
 

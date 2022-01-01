@@ -1,5 +1,5 @@
-import { useFrame, useLoader } from '@react-three/fiber'
-import { useEffect, useRef, useState } from 'react'
+import { useLoader } from '@react-three/fiber'
+import { useEffect, useRef } from 'react'
 import { TextureLoader } from 'three/src/loaders/TextureLoader'
 import vertex from './glsl/shader.vert'
 import fragment from './glsl/shader.frag'
@@ -8,34 +8,10 @@ import {
   InstancedBufferAttribute,
   InstancedBufferGeometry,
   LinearFilter,
-  Mesh,
   RGBFormat,
   Vector2,
 } from 'three'
-
-function TestBox(props) {
-  // This reference will give us direct access to the mesh
-  const mesh = useRef<Mesh>()
-  // Set up state for the hovered and active state
-  const [hovered, setHover] = useState(false)
-  const [active, setActive] = useState(false)
-  // Subscribe this component to the render-loop, rotate the mesh every frame
-  useFrame((state, delta) => (mesh.current.rotation.x += 0.01))
-  // Return view, these are regular three.js elements expressed in JSX
-  return (
-    <mesh
-      {...props}
-      ref={mesh}
-      scale={active ? 1.5 : 1}
-      onClick={(event) => setActive(!active)}
-      onPointerOver={(event) => setHover(true)}
-      onPointerOut={(event) => setHover(false)}
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
-    </mesh>
-  )
-}
+import TestBox from '../TeatBox'
 
 type Props = {
   imageFileLocation: string
@@ -98,10 +74,10 @@ const Shader = ({ imageFileLocation }: Props) => {
     positions.setXYZ(2, -0.5, -0.5, 0.0)
     positions.setXYZ(3, 0.5, -0.5, 0.0)
     const uvs = new BufferAttribute(new Float32Array(4 * 2), 2)
-    uvs.setXYZ(0, 0.0, 0.0)
-    uvs.setXYZ(1, 1.0, 0.0)
-    uvs.setXYZ(2, 0.0, 1.0)
-    uvs.setXYZ(3, 1.0, 1.0)
+    uvs.setXYZ(0, 0.0, 0.0, 0.0)
+    uvs.setXYZ(1, 1.0, 0.0, 0.0)
+    uvs.setXYZ(2, 0.0, 1.0, 0.0)
+    uvs.setXYZ(3, 1.0, 1.0, 0.0)
     const indices = new Uint16Array(numVisible)
     const offsets = new Float32Array(numVisible * 3)
     const angles = new Float32Array(numVisible)
@@ -143,8 +119,7 @@ const Shader = ({ imageFileLocation }: Props) => {
     <>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
-      <TestBox position={[-1.2, 0, 0]} />
-      <TestBox position={[1.2, 0, 0]} />
+      <TestBox position={[0, 0, 0]} />
       <mesh>
         <instancedBufferGeometry ref={geomRef} />
         <rawShaderMaterial
